@@ -104,92 +104,81 @@ export const Dashboard: React.FC = () => {
                 </button>
             </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '1.5rem', flex: 1 }}>
+            {/* 1. Market Pulse Tier (Macro Context) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <IndicesWidget data={marketPulse?.indices || null} onSelect={(t) => setSelectedTicker(t)} />
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+                    <SectorHeatmap data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        <FiiDiiWidget data={marketPulse} />
+                        <SectorWidget data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
+                    </div>
+                </div>
+            </div>
 
-                {/* Main Content Area */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    
-                    {/* 1. Strategy Scanner (Top Focus) */}
-                    <div className="card glass" style={{ padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <Terminal size={24} style={{ color: 'var(--accent-blue)' }} />
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>Strategy Scanner</h2>
-                            </div>
-                            <TradingModeSelector currentMode={mode} onModeChange={(m) => { setMode(m); setSelectedIdeaId(''); }} />
+            {/* 2. Strategy Scanner Tier (Active Analysis) */}
+            <div className="card glass" style={{ padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <Terminal size={24} style={{ color: 'var(--accent-blue)' }} />
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>Strategy Scanner</h2>
+                    </div>
+                    <TradingModeSelector currentMode={mode} onModeChange={(m) => { setMode(m); setSelectedIdeaId(''); }} />
+                </div>
+
+                {currentIdeas.length > 0 ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '1.5rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {currentIdeas.map(idea => (
+                                <TradeIdeaCard
+                                    key={idea.id}
+                                    idea={idea}
+                                    isSelected={selectedIdeaId === idea.id || (!selectedIdeaId && idea.id === currentIdeas[0]?.id)}
+                                    onClick={() => {
+                                        setSelectedIdeaId(idea.id);
+                                        setSelectedTicker(idea.ticker);
+                                    }}
+                                />
+                            ))}
                         </div>
-
-                        {currentIdeas.length > 0 ? (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {currentIdeas.map(idea => (
-                                        <TradeIdeaCard
-                                            key={idea.id}
-                                            idea={idea}
-                                            isSelected={selectedIdeaId === idea.id || (!selectedIdeaId && idea.id === currentIdeas[0]?.id)}
-                                            onClick={() => {
-                                                setSelectedIdeaId(idea.id);
-                                                setSelectedTicker(idea.ticker);
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                                <div style={{ minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
-                                    {selectedIdea ? (
-                                        <>
-                                            <div style={{ flex: 1, minHeight: 0 }}>
-                                                <ChartWidget ticker={selectedTicker} interval={mode === 'intraday' ? '15' : 'D'} />
-                                            </div>
-                                            <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '3px solid var(--accent-blue)' }}>
-                                                <div style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>AI Rationale</div>
-                                                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedIdea.rationale}</p>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                             <ChartWidget ticker={selectedTicker} interval={mode === 'intraday' ? '15' : 'D'} />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 2fr', gap: '1.5rem', flex: 1 }}>
-                                    <div style={{ padding: '2rem 1rem', textAlign: 'center', border: '1px dashed var(--border-subtle)', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', alignSelf: 'center' }}>
-                                        <Crosshair size={40} style={{ margin: '0 auto 1rem', color: 'var(--text-muted)', opacity: 0.5 }} />
-                                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No Active Scans</h3>
-                                        <button className="btn btn-primary" onClick={handleGenerate} style={{ fontSize: '0.8rem' }}>Scan Now</button>
-                                    </div>
-                                    <div style={{ flex: 1 }}>
+                        <div style={{ minHeight: '500px', display: 'flex', flexDirection: 'column' }}>
+                            {selectedIdea ? (
+                                <>
+                                    <div style={{ flex: 1, minHeight: 0 }}>
                                         <ChartWidget ticker={selectedTicker} interval={mode === 'intraday' ? '15' : 'D'} />
                                     </div>
+                                    <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '3px solid var(--accent-blue)' }}>
+                                        <div style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>AI Rationale</div>
+                                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedIdea.rationale}</p>
+                                    </div>
+                                </>
+                            ) : (
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                        <ChartWidget ticker={selectedTicker} interval={mode === 'intraday' ? '15' : 'D'} />
                                 </div>
-                        )}
-                    </div>
-
-                    {/* 2. Live Market Pulse (Now Below Scanner) */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        <IndicesWidget data={marketPulse?.indices || null} onSelect={(t) => setSelectedTicker(t)} />
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
-                            <SectorHeatmap data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                <FiiDiiWidget data={marketPulse} />
-                                <SectorWidget data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
-                            </div>
+                            )}
                         </div>
                     </div>
+                ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 2fr', gap: '1.5rem', flex: 1 }}>
+                            <div style={{ padding: '2rem 1rem', textAlign: 'center', border: '1px dashed var(--border-subtle)', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', alignSelf: 'center' }}>
+                                <Crosshair size={40} style={{ margin: '0 auto 1rem', color: 'var(--text-muted)', opacity: 0.5 }} />
+                                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No Active Scans</h3>
+                                <button className="btn btn-primary" onClick={handleGenerate} style={{ fontSize: '0.8rem' }}>Scan Now</button>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <ChartWidget ticker={selectedTicker} interval={mode === 'intraday' ? '15' : 'D'} />
+                            </div>
+                        </div>
+                )}
+            </div>
 
-                    {/* 3. Alerts & Events */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                        <EventsWidget events={events} />
-                        <AlertsWidget alerts={alerts} />
-                    </div>
-                </div>
-
-                {/* Right Sidebar - News Feed (Persistent) */}
-                <div style={{ height: '100%', minHeight: '600px' }}>
-                    <NewsWidget news={news} />
-                </div>
+            {/* 3. Bottom Feed Tier (Context & Alerts) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1.5rem', minHeight: '400px' }}>
+                <NewsWidget news={news} />
+                <EventsWidget events={events} />
+                <AlertsWidget alerts={alerts} />
             </div>
         </div>
     );
