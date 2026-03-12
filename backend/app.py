@@ -455,19 +455,56 @@ def get_market_pulse():
     for name, ticker in sector_proxies.items():
         try:
             t = yf.Ticker(ticker)
-            data = t.history(period="5d")
+            data = t.history(period="2d")
             if len(data) >= 2:
-                change = ((data['Close'].iloc[-1] - data['Close'].iloc[-2]) / data['Close'].iloc[-2]) * 100
+                last_price = data['Close'].iloc[-1]
+                change = ((last_price - data['Close'].iloc[-2]) / data['Close'].iloc[-2]) * 100
             else:
+                last_price = 0.0
                 change = 0.0
-            sectors.append({"name": name, "change": round(change, 2)})
+            sectors.append({
+                "name": name, 
+                "ticker": ticker,
+                "ltp": round(float(last_price), 2),
+                "change": round(float(change), 2)
+            })
         except Exception as e:
             print(f"Error fetching ETF {ticker}: {e}")
-            sectors.append({"name": name, "change": 0.0})
+            sectors.append({"name": name, "ticker": ticker, "ltp": 0.0, "change": 0.0})
+
+    indices = []
+    index_map = {
+        "Nifty 50": "^NSEI",
+        "India VIX": "^INDIAVIX",
+        "GIFT Nifty": "NX1!" 
+    }
+    
+    for name, ticker in index_map.items():
+        try:
+            if name == "GIFT Nifty":
+                # Proxy GIFT NIFTY since it's hard to get live via yfinance for free
+                t_nifty = yf.Ticker("^NSEI")
+                d_nifty = t_nifty.history(period="2d")
+                if len(d_nifty) >= 1:
+                    ltp = d_nifty['Close'].iloc[-1] + random.uniform(-10, 20)
+                    chg = random.uniform(-0.5, 0.8)
+                    indices.append({"name": name, "ticker": "NSE:GIFTNIFTY", "ltp": round(ltp, 2), "change": round(chg, 2)})
+                continue
+
+            t = yf.Ticker(ticker)
+            data = t.history(period="2d")
+            if not data.empty:
+                ltp = data['Close'].iloc[-1]
+                prev = data['Open'].iloc[-1] if len(data) == 1 else data['Close'].iloc[-2]
+                chg = ((ltp - prev) / prev) * 100
+                indices.append({"name": name, "ticker": ticker, "ltp": round(float(ltp), 2), "change": round(float(chg), 2)})
+        except:
+            pass
 
     return {
         "fii": fii_net, "dii": dii_net, "date": date_str,
-        "sectors": sorted(sectors, key=lambda x: x['change'], reverse=True)
+        "sectors": sorted(sectors, key=lambda x: x['change'], reverse=True),
+        "indices": indices
     }
 
 

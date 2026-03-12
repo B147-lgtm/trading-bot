@@ -5,7 +5,7 @@ import { TradeIdeaCard } from '../components/TradeIdeaCard';
 import type { TradeIdea } from '../components/TradeIdeaCard';
 import { ChartWidget } from '../components/ChartWidget';
 import { Bot, RefreshCw, Terminal, Crosshair } from 'lucide-react';
-import { FiiDiiWidget, SectorWidget, NewsWidget, EventsWidget, AlertsWidget } from '../components/DashboardWidgets';
+import { FiiDiiWidget, SectorWidget, NewsWidget, EventsWidget, AlertsWidget, IndicesWidget } from '../components/DashboardWidgets';
 import type { MarketPulse, NewsItem, EventItem, AlertItem } from '../components/DashboardWidgets';
 import { API_BASE } from '../config';
 
@@ -15,6 +15,7 @@ import { API_BASE } from '../config';
 export const Dashboard: React.FC = () => {
     const [mode, setMode] = useState<TradingMode>('intraday');
     const [selectedIdeaId, setSelectedIdeaId] = useState<string>('');
+    const [selectedTicker, setSelectedTicker] = useState<string>('NSE:NIFTY'); // TradingView default
     const [isGenerating, setIsGenerating] = useState(false);
     const [currentIdeas, setCurrentIdeas] = useState<TradeIdea[]>([]);
 
@@ -103,10 +104,13 @@ export const Dashboard: React.FC = () => {
                 </button>
             </header>
 
+            {/* Market Pulse Summary */}
+            <IndicesWidget data={marketPulse?.indices || null} onSelect={(t) => setSelectedTicker(t)} />
+
             {/* Top Command Center Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '1.5rem' }}>
                 <FiiDiiWidget data={marketPulse} />
-                <SectorWidget data={marketPulse?.sectors || null} />
+                <SectorWidget data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '1.5rem', flex: 1 }}>
@@ -130,7 +134,10 @@ export const Dashboard: React.FC = () => {
                                             key={idea.id}
                                             idea={idea}
                                             isSelected={selectedIdeaId === idea.id || (!selectedIdeaId && idea.id === currentIdeas[0]?.id)}
-                                            onClick={() => setSelectedIdeaId(idea.id)}
+                                            onClick={() => {
+                                                setSelectedIdeaId(idea.id);
+                                                setSelectedTicker(idea.ticker);
+                                            }}
                                         />
                                     ))}
                                 </div>
@@ -138,22 +145,31 @@ export const Dashboard: React.FC = () => {
                                     {selectedIdea ? (
                                         <>
                                             <div style={{ flex: 1, minHeight: 0 }}>
-                                                <ChartWidget ticker={selectedIdea.ticker} interval={mode === 'intraday' ? '15' : '1D'} />
+                                                <ChartWidget ticker={selectedTicker} interval={mode === 'intraday' ? '15' : 'D'} />
                                             </div>
                                             <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '3px solid var(--accent-blue)' }}>
                                                 <div style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>AI Rationale</div>
                                                 <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedIdea.rationale}</p>
                                             </div>
                                         </>
-                                    ) : null}
+                                    ) : (
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                             <ChartWidget ticker={selectedTicker} interval={mode === 'intraday' ? '15' : 'D'} />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ) : (
-                            <div style={{ padding: '4rem 2rem', textAlign: 'center', border: '1px dashed var(--border-subtle)', borderRadius: '12px', background: 'rgba(255,255,255,0.01)' }}>
-                                <Crosshair size={48} style={{ margin: '0 auto 1rem', color: 'var(--text-muted)', opacity: 0.5 }} />
-                                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Ready to Scan the Markets</h3>
-                                <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto' }}>Select your trading mode and click generate to let the AI analyze live NSE price action and fundamentals.</p>
-                            </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 2fr', gap: '1.5rem', flex: 1 }}>
+                                    <div style={{ padding: '2rem 1rem', textAlign: 'center', border: '1px dashed var(--border-subtle)', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', alignSelf: 'center' }}>
+                                        <Crosshair size={40} style={{ margin: '0 auto 1rem', color: 'var(--text-muted)', opacity: 0.5 }} />
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No Active Scans</h3>
+                                        <button className="btn btn-primary" onClick={handleGenerate} style={{ fontSize: '0.8rem' }}>Scan Now</button>
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <ChartWidget ticker={selectedTicker} interval={mode === 'intraday' ? '15' : 'D'} />
+                                    </div>
+                                </div>
                         )}
                     </div>
 

@@ -23,12 +23,21 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
 
         const createWidget = () => {
             if (containerRef.current && window.TradingView) {
-                // Formatting ticker for TradingView (NSE:TICKER)
-                const tvTicker = ticker.includes(':') ? ticker : `NSE:${ticker.replace('.NS', '')}`;
+                // Clear previous widget if any
+                containerRef.current.innerHTML = '';
+
+                // Ticker normalization for TradingView
+                let tvSymbol = ticker;
+                if (ticker === '^NSEI') tvSymbol = 'NSE:NIFTY';
+                else if (ticker === '^INDIAVIX') tvSymbol = 'NSE:INDIAVIX';
+                else if (ticker === 'NSE:GIFTNIFTY' || ticker === 'GIFTNIFTY') tvSymbol = 'NSE:GIFTNIFTY';
+                else if (!ticker.includes(':')) {
+                    tvSymbol = `NSE:${ticker.replace('.NS', '')}`;
+                }
                 
                 new window.TradingView.widget({
                     "autosize": true,
-                    "symbol": tvTicker,
+                    "symbol": tvSymbol,
                     "interval": interval === '15' ? '15' : 'D',
                     "timezone": "Asia/Kolkata",
                     "theme": "dark",
