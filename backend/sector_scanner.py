@@ -124,7 +124,16 @@ def score_stocks_in_sector(sector: str, mode: str = "swing") -> list:
             else:
                 combined = weekly_result['score'] * 0.3 + daily_result['score'] * 0.7
 
-            current_price = df_daily['Close'].iloc[-1] if not df_daily.empty else 0
+            # Relative Volume Filter (Must be > 1.0)
+            rvol = current_price * 0 # placeholder if volume missing
+            if not df_daily.empty:
+                avg_vol = df_daily['Volume'].tail(20).mean()
+                curr_vol = df_daily['Volume'].iloc[-1]
+                rvol = curr_vol / avg_vol if avg_vol > 0 else 1.0
+
+            if rvol < 1.0:
+                print(f"[SectorScanner] Skipping {ticker} due to low RVol: {rvol:.2f}")
+                continue
 
             scored.append({
                 'ticker':         ticker,
@@ -134,7 +143,8 @@ def score_stocks_in_sector(sector: str, mode: str = "swing") -> list:
                 'weekly_bias':    weekly_result.get('bias', 'Neutral'),
                 'daily_bias':     daily_result.get('bias', 'Neutral'),
                 'weekly_reasons': weekly_result.get('reasons', []),
-                'daily_reasons':  daily_result.get('reasons', [])
+                'daily_reasons':  daily_result.get('reasons', []),
+                'rvol':           round(float(rvol), 2)
             })
 
         except Exception as e:

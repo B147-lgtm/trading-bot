@@ -57,9 +57,10 @@ def compute_indicators(df: pd.DataFrame) -> pd.DataFrame:
     atr_period = min(14, len(df) - 1)
     df['ATR'] = ta.volatility.AverageTrueRange(high, low, close, window=atr_period).average_true_range()
 
-    # --- Volume MA ---
+    # --- Volume MA & Relative Volume ---
     vol_window = min(20, len(df) - 1)
     df['Vol_MA_20'] = vol.rolling(window=vol_window).mean()
+    df['RVol']      = vol / df['Vol_MA_20']
 
     return df
 
@@ -415,8 +416,40 @@ def score_lower_tf_entry(df: pd.DataFrame, higher_bias: str, sr_zones: dict) -> 
         'rr_ratio':     rr_ratio,
         'patterns':     patterns,
         'reasons':      reasons,
-        'higher_bias':  higher_bias
+        'higher_bias':  higher_bias,
+        'rvol':         round(latest.get('RVol', 1.0), 2)
     }
+
+
+# ---------------------------------------------------------------------------
+# 6. MULTI-TIMEFRAME TRIFECTA (1h -> 15m -> 5m)
+# ---------------------------------------------------------------------------
+
+def check_timeframe_confluence(df_1h: pd.DataFrame, df_15m: pd.DataFrame, df_5m: pd.DataFrame, side: str) -> dict:
+    """
+    Checks for price action alignment across 1h, 15m, and 5m.
+    Requires at least 2 out of 3 to be aligned with the trade side.
+    """
+    confluence = {"1h": False, "15m": False, "5m": False, "score": 0}
+    
+    def is_aligned(df, side):
+        if len(df) < 20: return False
+        df = compute_indicators(df)
+        last = df.iloc[-1]
+        c = last['Close']
+        e9 = last.get('EMA_9', c)
+        e20 = last.get('EMA_20', c)
+        if side == 'Long':
+            return c > e9 and e9 > e20
+        else:
+            return c < e9 and e9 < e20
+
+    confluence["1h"] = is_aligned(df_1h, side)
+    confluence["15m"] = is_aligned(df_15m, side)
+    confluence["5m"] = is_aligned(df_5m, side)
+    
+    confluence["score"] = sum([confluence["1h"], confluence["15m"], confluence["5m"]])
+    return confluence
 
 
 # ---------------------------------------------------------------------------

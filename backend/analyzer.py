@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 from trading_knowledge import TRADING_KNOWLEDGE_BASE
 from technical_engine import (
     compute_indicators, detect_sr_zones, detect_candlestick_patterns,
-    score_higher_tf, score_lower_tf_entry, calculate_rr, build_higher_tf_context
+    score_higher_tf, score_lower_tf_entry, calculate_rr, build_higher_tf_context,
+    check_timeframe_confluence
 )
 from sector_scanner import run_sector_pipeline
 
@@ -178,6 +179,15 @@ def generate_trade_ideas(mode: str):
             company_name  = info.get('shortName', ticker) if info else ticker
             current_price = candidate.get('current_price', 0) or (df_ltf['Close'].iloc[-1] if not df_ltf.empty else 0)
 
+            # --- Deep Dive Triad: 1h -> 15m -> 5m ---
+            try:
+                df_1h  = yf.Ticker(ticker).history(period="10d", interval="1h")
+                df_15m = yf.Ticker(ticker).history(period="5d",  interval="15m")
+                df_5m  = yf.Ticker(ticker).history(period="1d",  interval="5m")
+                confluence = check_timeframe_confluence(df_1h, df_15m, df_5m, trade_side)
+            except:
+                confluence = {"1h": False, "15m": False, "5m": False, "score": 0}
+
             # Build rich context string
             ctx  = f"\n{'='*50}\n"
             ctx += f"TICKER: {ticker}  ({company_name})\n"
@@ -204,6 +214,12 @@ def generate_trade_ideas(mode: str):
                 ctx += f"  • R:R Ratio:   {entry_ctx.get('rr_ratio', 'N/A')}\n"
             if entry_ctx.get('patterns'):
                 ctx += f"  • Patterns:    {', '.join(entry_ctx['patterns'].keys())}\n"
+            
+            ctx += f"\n[TIMEFRAME CONFLUENCE ({trade_side})]\n"
+            ctx += f"  • 1h: {'YES ✓' if confluence['1h'] else 'NO ✗'} | 15m: {'YES ✓' if confluence['15m'] else 'NO ✗'} | 5m: {'YES ✓' if confluence['5m'] else 'NO ✗'}\n"
+            ctx += f"  • Confluence Score: {confluence['score']}/3\n"
+            ctx += f"  • Relative Volume: {candidate.get('rvol', entry_ctx.get('rvol', 1.0))}x\n"
+
             for r in entry_ctx.get('reasons', [])[:5]:
                 ctx += f"  • {r}\n"
 
