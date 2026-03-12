@@ -5,7 +5,7 @@ import { TradeIdeaCard } from '../components/TradeIdeaCard';
 import type { TradeIdea } from '../components/TradeIdeaCard';
 import { ChartWidget } from '../components/ChartWidget';
 import { Bot, RefreshCw, Terminal, Crosshair } from 'lucide-react';
-import { FiiDiiWidget, SectorWidget, NewsWidget, EventsWidget, AlertsWidget, IndicesWidget } from '../components/DashboardWidgets';
+import { FiiDiiWidget, SectorWidget, NewsWidget, EventsWidget, AlertsWidget, IndicesWidget, SectorHeatmap } from '../components/DashboardWidgets';
 import type { MarketPulse, NewsItem, EventItem, AlertItem } from '../components/DashboardWidgets';
 import { API_BASE } from '../config';
 
@@ -108,9 +108,12 @@ export const Dashboard: React.FC = () => {
             <IndicesWidget data={marketPulse?.indices || null} onSelect={(t) => setSelectedTicker(t)} />
 
             {/* Top Command Center Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '1.5rem' }}>
-                <FiiDiiWidget data={marketPulse} />
-                <SectorWidget data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+                <SectorHeatmap data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <FiiDiiWidget data={marketPulse} />
+                    <SectorWidget data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
+                </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '1.5rem', flex: 1 }}>

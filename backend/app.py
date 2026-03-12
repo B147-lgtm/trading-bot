@@ -443,38 +443,48 @@ def get_market_pulse():
     except Exception as e:
         print("FII/DII Scrape Error:", e)
 
-    # Fetch Live Sectors using ETF Proxies
+    # Fetch Live Sectors using ETF Proxies (Expanded for Heatmap)
     sector_proxies = {
         "Nifty Bank":   "BANKBEES.NS",
         "Nifty IT":     "ITBEES.NS",
         "Nifty Auto":   "AUTOBEES.NS",
         "Nifty FMCG":   "NIFTYBEES.NS",
-        "Nifty Pharma": "PHARMABEES.NS"
+        "Nifty Pharma": "PHARMABEES.NS",
+        "Nifty Metal":  "METALBEES.NS",
+        "Nifty Energy": "CPSEETF.NS",
+        "Nifty Realty": "GSEC10YEAR.NS", # Proxy or direct ETF if available
+        "Nifty PSU Bank": "PSUBNKBEES.NS"
     }
     sectors = []
     for name, ticker in sector_proxies.items():
         try:
             t = yf.Ticker(ticker)
             data = t.history(period="2d")
-            if len(data) >= 2:
+            if len(data) >= 1:
                 last_price = data['Close'].iloc[-1]
-                change = ((last_price - data['Close'].iloc[-2]) / data['Close'].iloc[-2]) * 100
+                prev_price = data['Open'].iloc[-1] if len(data) == 1 else data['Close'].iloc[-2]
+                change = ((last_price - prev_price) / prev_price) * 100
+                abs_change = last_price - prev_price
             else:
                 last_price = 0.0
                 change = 0.0
+                abs_change = 0.0
+            
             sectors.append({
                 "name": name, 
                 "ticker": ticker,
                 "ltp": round(float(last_price), 2),
-                "change": round(float(change), 2)
+                "change": round(float(change), 2),
+                "absChange": round(float(abs_change), 2)
             })
         except Exception as e:
             print(f"Error fetching ETF {ticker}: {e}")
-            sectors.append({"name": name, "ticker": ticker, "ltp": 0.0, "change": 0.0})
+            sectors.append({"name": name, "ticker": ticker, "ltp": 0.0, "change": 0.0, "absChange": 0.0})
 
     indices = []
     index_map = {
         "Nifty 50": "^NSEI",
+        "Bank Nifty": "^NSEBANK",
         "India VIX": "^INDIAVIX",
         "GIFT Nifty": "NX1!" 
     }

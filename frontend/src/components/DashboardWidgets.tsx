@@ -6,7 +6,7 @@ export interface MarketPulse {
     fii: number;
     dii: number;
     date?: string;
-    sectors: { name: string; ticker: string; change: number; ltp: number }[];
+    sectors: { name: string; ticker: string; change: number; ltp: number; absChange: number }[];
     indices: { name: string; ticker: string; change: number; ltp: number }[];
 }
 
@@ -90,6 +90,52 @@ export const IndicesWidget: React.FC<{ data: MarketPulse['indices'] | null; onSe
 }
 
 // --- Sector Heatmap Widget ---
+export const SectorHeatmap: React.FC<{ data: MarketPulse['sectors'] | null; onSelect?: (ticker: string) => void }> = ({ data, onSelect }) => {
+    if (!data) return <div className="card glass skeleton" style={{ height: '200px' }}></div>;
+
+    return (
+        <div className="card glass animate-fade-in" style={{ padding: '1.5rem', flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
+                <Activity size={18} style={{ color: 'var(--accent-orange)' }} />
+                <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Market Real-Time Heatmap</h3>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '4px', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: '8px' }}>
+                {data.map((sector, idx) => {
+                    const isPositive = sector.change >= 0;
+                    // Intensity color mapping
+                    const intensity = Math.min(Math.abs(sector.change) * 20, 100);
+                    const bgColor = isPositive 
+                        ? `rgba(38, 166, 154, ${0.1 + (intensity/100) * 0.6})` 
+                        : `rgba(239, 83, 80, ${0.1 + (intensity/100) * 0.6})`;
+
+                    return (
+                        <div 
+                            key={idx} 
+                            className="cursor-pointer hover:scale-[1.02] transition-transform"
+                            onClick={() => onSelect?.(sector.ticker)}
+                            style={{ 
+                                background: bgColor, 
+                                height: '70px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: '4px',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                textAlign: 'center'
+                            }}
+                        >
+                            <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.9)', marginBottom: '2px' }}>{sector.name.replace('Nifty ', '')}</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 800 }}>{isPositive ? '+' : ''}{sector.change}%</div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+// --- Sector Momentum Widget ---
 export const SectorWidget: React.FC<{ data: MarketPulse['sectors'] | null; onSelect?: (ticker: string) => void }> = ({ data, onSelect }) => {
     if (!data) return <div className="card glass skeleton" style={{ height: '150px' }}></div>;
 
@@ -99,10 +145,11 @@ export const SectorWidget: React.FC<{ data: MarketPulse['sectors'] | null; onSel
                 <Activity size={18} style={{ color: 'var(--accent-blue)' }} />
                 <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Sector Momentum</h3>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }}>
-                {data.map((sector, idx) => {
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                {data.slice(0, 6).map((sector, idx) => {
                     const isPositive = sector.change >= 0;
                     const color = isPositive ? 'var(--bullish)' : 'var(--bearish)';
+                    const Arrow = isPositive ? ArrowUpRight : ArrowDownRight;
 
                     return (
                         <div 
@@ -112,14 +159,24 @@ export const SectorWidget: React.FC<{ data: MarketPulse['sectors'] | null; onSel
                             style={{ 
                                 background: 'rgba(255,255,255,0.02)', 
                                 borderRadius: '8px', 
-                                padding: '0.75rem', 
+                                padding: '1rem', 
                                 border: `1px solid var(--border-subtle)`,
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
                             }}
                         >
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>{sector.name}</div>
-                            <div style={{ fontWeight: 700, fontSize: '1rem' }}>₹{sector.ltp}</div>
-                            <div style={{ color, fontWeight: 700, fontSize: '0.875rem' }}>{isPositive ? '+' : ''}{sector.change}%</div>
+                            <div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem', fontWeight: 600 }}>{sector.name}</div>
+                                <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>₹{sector.ltp.toLocaleString()}</div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ color, fontWeight: 700, fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                    <Arrow size={16} /> {isPositive ? '+' : ''}{sector.change}%
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{isPositive ? 'Gain' : 'Fall'} ₹{Math.abs(sector.absChange).toFixed(2)}</div>
+                            </div>
                         </div>
                     );
                 })}
