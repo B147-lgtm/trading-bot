@@ -416,23 +416,30 @@ def get_market_pulse():
 
     # Scrape FII/DII from Moneycontrol
     url = "https://www.moneycontrol.com/stocks/marketstats/fii_dii_activity/index.php"
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+    headers = {'User-Agent': 'Mozilla/5.0'}
     try:
         response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.content, 'html.parser')
         tables = soup.find_all('table', class_='mctable1')
         if tables:
-            rows = tables[0].find('tbody').find_all('tr')
-            for row in rows[1:3]:
-                cols = row.find_all('td')
-                if len(cols) >= 7:
-                    try:
-                        date_str = cols[0].text.strip()
-                        fii_net = float(cols[3].text.strip().replace(',', ''))
-                        dii_net = float(cols[6].text.strip().replace(',', ''))
-                        break
-                    except:
-                        continue
+            tbody = tables[0].find('tbody')
+            if tbody:
+                rows = tbody.find_all('tr')
+                # Iterate through all rows until we find a valid data row (not a header/empty)
+                for row in rows:
+                    cols = row.find_all('td')
+                    if len(cols) >= 7:
+                        try:
+                            tmp_date = cols[0].text.strip()
+                            f_net = float(cols[3].text.strip().replace(',', ''))
+                            d_net = float(cols[6].text.strip().replace(',', ''))
+                            # If we found valid data, use it and break
+                            date_str = tmp_date
+                            fii_net = f_net
+                            dii_net = d_net
+                            break
+                        except (ValueError, IndexError):
+                            continue
     except Exception as e:
         print("FII/DII Scrape Error:", e)
 
