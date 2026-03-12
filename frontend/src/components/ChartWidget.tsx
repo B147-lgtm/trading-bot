@@ -31,6 +31,14 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
                 if (ticker === '^NSEI') tvSymbol = 'TVC:NIFTY';
                 else if (ticker === '^NSEBANK') tvSymbol = 'TVC:BANKNIFTY';
                 else if (ticker === '^INDIAVIX') tvSymbol = 'TVC:INDIAVIX';
+                else if (ticker === '^CNXIT') tvSymbol = 'NSE:NIFTYIT';
+                else if (ticker === '^CNXAUTO') tvSymbol = 'NSE:NIFTYAUTO';
+                else if (ticker === '^CNXPHARMA') tvSymbol = 'NSE:NIFTYPHARMA';
+                else if (ticker === '^CNXFMCG') tvSymbol = 'NSE:NIFTYFMCG';
+                else if (ticker === '^CNXMETAL') tvSymbol = 'NSE:NIFTYMETAL';
+                else if (ticker === '^CNXENERGY') tvSymbol = 'NSE:NIFTYENERGY';
+                else if (ticker === '^CNXREALTY') tvSymbol = 'NSE:NIFTYREALTY';
+                else if (ticker === '^CNXPSUBANK') tvSymbol = 'NSE:NIFTYPSUBANK';
                 else if (ticker === 'NSE:GIFTNIFTY' || ticker === 'GIFTNIFTY') tvSymbol = 'FX_IDC:NIFTY';
                 else if (ticker.includes(':')) {
                     tvSymbol = ticker;

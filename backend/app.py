@@ -445,15 +445,15 @@ def get_market_pulse():
 
     # Fetch Live Sectors using ETF Proxies (Expanded for Heatmap)
     sector_proxies = {
-        "Nifty Bank":   "BANKBEES.NS",
-        "Nifty IT":     "ITBEES.NS",
-        "Nifty Auto":   "AUTOBEES.NS",
-        "Nifty FMCG":   "NIFTYBEES.NS",
-        "Nifty Pharma": "PHARMABEES.NS",
-        "Nifty Metal":  "METALBEES.NS",
-        "Nifty Energy": "CPSEETF.NS",
-        "Nifty Realty": "GSEC10YEAR.NS", # Proxy or direct ETF if available
-        "Nifty PSU Bank": "PSUBNKBEES.NS"
+        "Nifty Bank":   "^NSEBANK",
+        "Nifty IT":     "^CNXIT",
+        "Nifty Auto":   "^CNXAUTO",
+        "Nifty FMCG":   "^CNXFMCG",
+        "Nifty Pharma": "^CNXPHARMA",
+        "Nifty Metal":  "^CNXMETAL",
+        "Nifty Energy": "^CNXENERGY",
+        "Nifty Realty": "^CNXREALTY",
+        "Nifty PSU Bank": "^CNXPSUBANK"
     }
     sectors = []
     for name, ticker in sector_proxies.items():
