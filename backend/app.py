@@ -231,8 +231,10 @@ def job_news_monitor():
         "upgrade", "merger", "acquisition", "stake sale", "IPO block", "halt"
     ]
     try:
-        feed = feedparser.parse("https://www.moneycontrol.com/rss/MCtopnews.xml")
-        for entry in feed.entries[:5]:
+        # Using Google News RSS for live 2026 data — Moneycontrol RSS was stale/2016
+        rss_url = "https://news.google.com/rss/search?q=NSE+India+stock+market+breaking+news&hl=en-IN&gl=IN&ceid=IN:en"
+        feed = feedparser.parse(rss_url)
+        for entry in feed.entries[:10]:
             title = entry.get("title", "")
             for kw in HIGH_IMPACT_KEYWORDS:
                 if kw.lower() in title.lower():
@@ -482,20 +484,21 @@ def get_events():
 
 @app.get("/api/news")
 def get_news():
-    url = "https://www.moneycontrol.com/rss/MCtopnews.xml"
+    # Google News RSS for live 2026 Indian market headlines
+    url = "https://news.google.com/rss/search?q=NSE+India+stock+market&hl=en-IN&gl=IN&ceid=IN:en"
     try:
         feed = feedparser.parse(url)
         return [
             {
                 "id":       str(uuid.uuid4()),
                 "headline": entry.get('title', 'Headline Unavailable'),
-                "source":   "Moneycontrol",
+                "source":   entry.get('source', {}).get('title', 'Google News'),
                 "time":     entry.get('published', 'Recently')
             }
-            for entry in feed.entries[:8]
+            for entry in feed.entries[:10]
         ]
     except Exception as e:
-        print(f"Error fetching RSS: {e}")
+        print(f"Error fetching Live News: {e}")
         return []
 
 

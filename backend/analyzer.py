@@ -136,11 +136,11 @@ def generate_trade_ideas(mode: str):
     ltf = lower_tf_settings.get(mode, {"period": "1mo", "interval": "1d"})
 
     # Step 1 & 2: sector pipeline returns pre-scored candidates
-    candidates = run_sector_pipeline(mode=mode, top_n_sectors=2, top_n_stocks=2)
+    candidates = run_sector_pipeline(mode=mode, top_n_sectors=3, top_n_stocks=3)
 
-    # Fallback: if the sector scanner fails, use a default list
+    # Fallback: if the sector scanner fails or all sectors are bearish
     if not candidates:
-        print("[Analyzer] Sector pipeline returned no candidates, falling back to default tickers")
+        print("[Analyzer] Sector pipeline returned zero candidates (bearish market?). Using core watchlist fallbacks.")
         fallback_tickers = {
             "intraday":   ["RELIANCE.NS", "HDFCBANK.NS"],
             "short-term": ["INFY.NS", "TCS.NS"],
@@ -222,9 +222,19 @@ def generate_trade_ideas(mode: str):
             continue
 
     if not analysis_context:
-        print("[Analyzer] No analysis context — all candidates failed")
-        analysis_context = [{"ticker": "RELIANCE.NS", "name": "Reliance Industries",
-                              "price": 0, "data": "No data available", "entry_ctx": {}, "sr_zones": {}}]
+        print("[Analyzer] No clear technical setups found. Forcing core analysis on heavyweights.")
+        # Final fallback to ensure the UI is never empty
+        fallback_list = ["RELIANCE.NS", "HDFCBANK.NS", "INFY.NS", "TATAMOTORS.NS"]
+        for t in fallback_list:
+            try:
+                df, info, latest, fundamentals = fetch_and_analyze_data(t)
+                analysis_context.append({
+                    "ticker": t, "name": info.get('shortName', t),
+                    "price": latest['Close'], "data": f"TICKER: {t}\nRecent price action evaluation required.",
+                    "entry_ctx": {"reasons": ["Core watchlist fallback motivated by overall market sentiment"]},
+                    "sr_zones": detect_sr_zones(df)
+                })
+            except: continue
 
     # --- Build final prompt ---
     prompt = f"""
