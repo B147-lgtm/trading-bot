@@ -26,13 +26,20 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
                 // Clear previous widget if any
                 containerRef.current.innerHTML = '';
 
-                // Ticker normalization for TradingView
+                // Robust Ticker normalization for TradingView
                 let tvSymbol = ticker;
                 if (ticker === '^NSEI') tvSymbol = 'NSE:NIFTY';
+                else if (ticker === '^NSEBANK') tvSymbol = 'NSE:BANKNIFTY';
                 else if (ticker === '^INDIAVIX') tvSymbol = 'NSE:INDIAVIX';
                 else if (ticker === 'NSE:GIFTNIFTY' || ticker === 'GIFTNIFTY') tvSymbol = 'NSE:GIFTNIFTY';
-                else if (!ticker.includes(':')) {
+                else if (ticker.includes(':')) {
+                    tvSymbol = ticker;
+                } else if (ticker.endsWith('.NS')) {
                     tvSymbol = `NSE:${ticker.replace('.NS', '')}`;
+                } else if (ticker.endsWith('.BO')) {
+                    tvSymbol = `BSE:${ticker.replace('.BO', '')}`;
+                } else {
+                    tvSymbol = `NSE:${ticker}`;
                 }
                 
                 new window.TradingView.widget({
@@ -49,7 +56,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
                     "hide_legend": false,
                     "save_image": false,
                     "container_id": containerRef.current.id,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#000000",
                     "gridColor": "rgba(255, 255, 255, 0.05)",
                     "allow_symbol_change": true,
                     "details": true,
@@ -57,9 +64,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
                     "calendar": true,
                     "show_popup_button": true,
                     "popup_width": "1000",
-                    "popup_height": "650",
-                    "width": "100%",
-                    "height": "500"
+                    "popup_height": "650"
                 });
             }
         };
