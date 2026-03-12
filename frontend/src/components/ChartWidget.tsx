@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, CandlestickSeries } from 'lightweight-charts';
 import type { IChartApi, UTCTimestamp } from 'lightweight-charts';
+import { API_BASE } from '../config';
 
 export interface ChartDataPoint {
     time: string | UTCTimestamp;
@@ -35,7 +36,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
                 const backendInterval = interval === '15' ? '15m' : '1d';
                 const period = interval === '15' ? '5d' : '6mo';
 
-                const response = await fetch(`http://localhost:8000/api/chart/${ticker}?interval=${backendInterval}&period=${period}`);
+                const response = await fetch(`${API_BASE}/api/chart/${ticker}?interval=${backendInterval}&period=${period}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }

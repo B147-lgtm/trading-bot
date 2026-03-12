@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Filter, TrendingUp } from 'lucide-react';
+import { API_BASE } from '../config';
 
 interface ScreenerResult {
     id: string;
@@ -21,7 +22,7 @@ export const ResearchMode: React.FC = () => {
     const handleScreener = async () => {
         setIsScanning(true);
         try {
-            const response = await fetch('http://localhost:8000/api/screener', {
+            const response = await fetch(`${API_BASE}/api/screener`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

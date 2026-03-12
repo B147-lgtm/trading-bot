@@ -7,6 +7,7 @@ import { ChartWidget } from '../components/ChartWidget';
 import { Bot, RefreshCw, Terminal, Crosshair } from 'lucide-react';
 import { FiiDiiWidget, SectorWidget, NewsWidget, EventsWidget, AlertsWidget } from '../components/DashboardWidgets';
 import type { MarketPulse, NewsItem, EventItem, AlertItem } from '../components/DashboardWidgets';
+import { API_BASE } from '../config';
 
 
 // Fetching from backend now
@@ -28,9 +29,9 @@ export const Dashboard: React.FC = () => {
         const fetchDashboardData = async () => {
             try {
                 const [pulseRes, newsRes, eventsRes] = await Promise.all([
-                    fetch('http://localhost:8000/api/market-pulse'),
-                    fetch('http://localhost:8000/api/news'),
-                    fetch('http://localhost:8000/api/events')
+                    fetch(`${API_BASE}/api/market-pulse`),
+                    fetch(`${API_BASE}/api/news`),
+                    fetch(`${API_BASE}/api/events`)
                 ]);
 
                 if (pulseRes.ok) setMarketPulse(await pulseRes.json());
@@ -45,7 +46,7 @@ export const Dashboard: React.FC = () => {
         // Fetch live agent alerts, refresh every 30 seconds
         const fetchAlerts = async () => {
             try {
-                const res = await fetch('http://localhost:8000/api/alerts?limit=15');
+                const res = await fetch(`${API_BASE}/api/alerts?limit=15`);
                 if (res.ok) setAlerts(await res.json());
             } catch {}
         };
@@ -59,7 +60,7 @@ export const Dashboard: React.FC = () => {
     const handleGenerate = async () => {
         setIsGenerating(true);
         try {
-            const response = await fetch('http://localhost:8000/api/scan', {
+            const response = await fetch(`${API_BASE}/api/scan`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

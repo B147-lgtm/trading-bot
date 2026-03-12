@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Activity, Target, ShieldAlert, Flag, TrendingUp, BarChart2, RefreshCw } from 'lucide-react';
 import { ChartWidget } from '../components/ChartWidget';
+import { API_BASE } from '../config';
 
 interface DeepAnalysisResult {
     ticker: string;
@@ -33,7 +34,7 @@ export const DeepAnalysis: React.FC = () => {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:8000/api/analyze', {
+            const response = await fetch(`${API_BASE}/api/analyze`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ticker: ticker.toUpperCase() })

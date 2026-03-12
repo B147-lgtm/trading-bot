@@ -35,7 +35,13 @@ app = FastAPI(title="TradeAgent AI API — v2 Live Edition")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",           # local dev
+        "http://localhost:3000",
+        "https://trading-bot-production-d6f7.up.railway.app",  # Railway backend
+        "https://*.vercel.app",            # Vercel frontend (any subdomain)
+        "*"                                # fallback — tighten after frontend URL is known
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -496,3 +502,4 @@ def get_news():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=False)
+allow_origins=["http://localhost:5173", "https://your-frontend.vercel.app"],
