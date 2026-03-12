@@ -28,10 +28,10 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
 
                 // Robust Ticker normalization for TradingView
                 let tvSymbol = ticker;
-                if (ticker === '^NSEI') tvSymbol = 'NSE:NIFTY';
-                else if (ticker === '^NSEBANK') tvSymbol = 'NSE:BANKNIFTY';
-                else if (ticker === '^INDIAVIX') tvSymbol = 'NSE:INDIAVIX';
-                else if (ticker === 'NSE:GIFTNIFTY' || ticker === 'GIFTNIFTY') tvSymbol = 'NSE:GIFTNIFTY';
+                if (ticker === '^NSEI') tvSymbol = 'TVC:NIFTY';
+                else if (ticker === '^NSEBANK') tvSymbol = 'TVC:BANKNIFTY';
+                else if (ticker === '^INDIAVIX') tvSymbol = 'TVC:INDIAVIX';
+                else if (ticker === 'NSE:GIFTNIFTY' || ticker === 'GIFTNIFTY') tvSymbol = 'FX_IDC:NIFTY';
                 else if (ticker.includes(':')) {
                     tvSymbol = ticker;
                 } else if (ticker.endsWith('.NS')) {
