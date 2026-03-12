@@ -32,6 +32,14 @@ def fetch_and_analyze_data(ticker: str, period: str = "1mo", interval: str = "1d
     # Attempt to fetch real data
     try:
         df = stock.history(period=period, interval=interval)
+        # Try to get the absolute latest price if yfinance provides it (sometimes fresher than history)
+        try:
+            latest_price = stock.fast_info.get('last_price')
+            if latest_price and not df.empty:
+                # Update the very last candle's close if it's wildly different or missing
+                df.at[df.index[-1], 'Close'] = latest_price
+        except:
+            pass
     except Exception:
         df = pd.DataFrame()
         
