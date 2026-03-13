@@ -104,20 +104,25 @@ export const Dashboard: React.FC = () => {
                 </button>
             </header>
 
-            {/* 1. Market Pulse Tier (Macro Context) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <IndicesWidget data={marketPulse?.indices || null} onSelect={(t) => setSelectedTicker(t)} />
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
-                    <SectorHeatmap data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        <FiiDiiWidget data={marketPulse} />
-                        <SectorWidget data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
+            {/* 1. Macro Section (Market Pulse + News) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <IndicesWidget data={marketPulse?.indices || null} onSelect={(t) => setSelectedTicker(t)} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                        <SectorHeatmap data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <FiiDiiWidget data={marketPulse} />
+                            <SectorWidget data={marketPulse?.sectors || null} onSelect={(t) => setSelectedTicker(t)} />
+                        </div>
                     </div>
+                </div>
+                {/* News Feed - Now part of the top Macro section for instant context */}
+                <div style={{ height: '100%', minHeight: '520px' }}>
+                    <NewsWidget news={news} />
                 </div>
             </div>
 
-            {/* 2. Strategy Scanner Tier (Active Analysis) */}
+            {/* 2. Strategy Scanner & Chart Section (Active Analysis) */}
             <div className="card glass" style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -174,9 +179,8 @@ export const Dashboard: React.FC = () => {
                 )}
             </div>
 
-            {/* 3. Bottom Feed Tier (Context & Alerts) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1.5rem', minHeight: '400px' }}>
-                <NewsWidget news={news} />
+            {/* 3. Bottom Utility Tier (Events & Alerts) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 <EventsWidget events={events} />
                 <AlertsWidget alerts={alerts} />
             </div>
